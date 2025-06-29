@@ -26,9 +26,13 @@ Install the dependencies as specified in the Requirements section.
 ## 2 Parameter settings
 
 ## 3 Prepare input data
-There are multiple datasets involved in the process:\
-For lncRNA subcellular localization prediction\
-Dataset Loc I\
-Benchmark dataset:\
-Sequences from dataset_preparation\dataset_Loc_II including seq_729.csv (729 samples from H. sapiens) and seq_holdout_82.csv (82 samples from H. sapiens).\
-Labels from dataset_preparation\dataset_Loc_II including label_729.csv and label_holdout_82.csv.\
+There are multiple datasets involved in the process:
+### 3.1 For lncRNA subcellular localization prediction\
+#### 3.1.1 Dataset Loc I
+#### Benchmark dataset
+Sequences from dataset_preparation\dataset_Loc_I including seq_729.csv (729 samples from H. sapiens) and seq_holdout_82.csv (82 samples from H. sapiens).\
+Labels from dataset_preparation\dataset_Loc_I including label_729.csv and label_holdout_82.csv.\
+#### 3.1.2 Dataset Loc II
+#### Benchmark dataset
+Sequences from dataset_preparation\dataset_Loc_II including homo_219.fasta (219 samples from H. sapiens) and mus_65.fasta (65 samples from M. sapiens).\
+Labels from dataset_preparation\dataset_Loc_II including label_homo_219.csv and label_mus_65.csv.\
