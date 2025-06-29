@@ -7,7 +7,7 @@ from torch.utils.data import Dataset
 class MultiTaskModel(nn.Module):
     def __init__(self):
         super(MultiTaskModel, self).__init__()
-        # 共享特征提取器
+        # Shared feature extractor
         self.shared_cnn = nn.Sequential(
             nn.Conv2d(3, 32, kernel_size=3, stride=1, padding=1),
             nn.ReLU(),
@@ -17,25 +17,25 @@ class MultiTaskModel(nn.Module):
             nn.MaxPool2d(kernel_size=2, stride=2),
             nn.Flatten()
         )
-        # 任务 1：lncRNA 多标签亚细胞定位预测
+        # Primary task: lncRNA multi-label subcellular localization prediction
         self.task1 = nn.Sequential(
             nn.Linear(64 * 64 * 64, 128),
             nn.ReLU(),
-            nn.Linear(128, 4),  # 4 个多标签
+            nn.Linear(128, 4),  # The number of multi-label is 4
             nn.Sigmoid()
         )
-        # 任务 2：lncRNA-蛋白质相互作用识别
+        # Auxiliary task: lncRNA-protein interaction recognition
         self.task2 = nn.Sequential(
-            nn.Linear(64 * 64 * 64 * 2, 128),  # 拼接 lncRNA 和蛋白质特征
+            nn.Linear(64 * 64 * 64 * 2, 128),  # Splicing lncRNA and protein features
             nn.BatchNorm1d(128),
             nn.Dropout(p=0.1),
             nn.ReLU(inplace=True),
-            nn.Linear(128, 1),  # 二分类
+            nn.Linear(128, 1),  # Binary classification
             nn.Sigmoid()
         )
 
     def forward(self, x1, x2=None):
-        # 共享特征提取
+        # Shared feature extraction
         features1 = self.shared_cnn(x1)
         if x2 is not None:
             features2 = self.shared_cnn(x2)
@@ -46,7 +46,7 @@ class MultiTaskModel(nn.Module):
         return C, None
 
 
-# 自定义 Dataset 类
+# Custom Dataset Class
 class MultiTask2Dataset(Dataset):
     def __init__(self, lncRNA_data, protein_data, labels):
         self.lncRNA_data = lncRNA_data
