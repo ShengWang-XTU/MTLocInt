@@ -21,6 +21,14 @@ scikit-image==0.21.0\
 numpy==1.20.3
 
 ## 1 Setup instructions
-Install the dependencies as specified in the Requirements section.\
+Install the dependencies as specified in the Requirements section.
 
 ## 2 Parameter settings
+
+## 3 Prepare input data
+There are multiple datasets involved in the process:\
+For lncRNA subcellular localization prediction\
+Dataset Loc I\
+Benchmark dataset:\
+Sequences from dataset_preparation\dataset_Loc_II including seq_729.csv (729 samples from H. sapiens) and seq_holdout_82.csv (82 samples from H. sapiens).\
+Labels from dataset_preparation\dataset_Loc_II including label_729.csv and label_holdout_82.csv.\
