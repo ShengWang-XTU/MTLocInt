@@ -34,5 +34,5 @@ Sequences from dataset_preparation\dataset_Loc_I including seq_729.csv (729 samp
 Labels from dataset_preparation\dataset_Loc_I including label_729.csv and label_holdout_82.csv.\
 #### 3.1.2 Dataset Loc II
 #### Benchmark dataset
-Sequences from dataset_preparation\dataset_Loc_II including homo_219.fasta (219 samples from H. sapiens) and mus_65.fasta (65 samples from M. sapiens).\
+Sequences from dataset_preparation\dataset_Loc_II including homo_219.fasta (219 samples from H. sapiens) and mus_65.fasta (65 samples from M. musculus).\
 Labels from dataset_preparation\dataset_Loc_II including label_homo_219.csv and label_mus_65.csv.\
