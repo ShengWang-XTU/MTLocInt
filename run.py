@@ -25,17 +25,17 @@ EPOCHS = 16
 GRAY_SCALE = False
 CHANNELS = 1 if GRAY_SCALE else 3
 
-# 任务一参数
+# Primary task parameters
 ddr1 = 256
 NUM1 = 729
 NUM2 = 82
 
-# 任务二参数
+# Auxiliary task parameters
 ddr2 = 256
 NUM3 = 3046
 NUM4 = 136
 
-# 任务一数据读取
+# Loading the lncRNA sequence features for the benchmark dataset in the primary task
 print("lncRNA 729")
 R1 = []
 for c in range(NUM1):
@@ -49,51 +49,50 @@ for c in range(NUM1):
     R1.append(imgT)
 lncRNA_loc_features_o = np.array(R1)
 
-# 读取任务一标签
+# Loading the labels for the benchmark dataset of the primary task
 dfl = pd.read_csv('dataset_preparation/dataset_Loc_II/label_729.csv')
 dfl_ho = pd.read_csv('dataset_preparation/dataset_Loc_II/label_holdout_82.csv')
 lncRNA_loc_labels_o = dfl.values
 lncRNA_loc_labels_ho = dfl_ho.values
 
-# 数据集已经加载为dataloader
+# Construct dataloader for the benchmark dataset of the primary task
 data = TensorDataset(torch.tensor(lncRNA_loc_features_o, dtype=torch.float32),
                      torch.tensor(lncRNA_loc_labels_o, dtype=torch.float32))
 dataloader = DataLoader(data, batch_size=32, shuffle=False)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-# 初始化扩散模型
+# Initialize the diffusion model
 model = DiffusionModel(image_channels=3, image_size=256, timesteps=1000, num_labels=4).to(device)
-# 优化器
+# Optimizer
 optimizer = optim.Adam(model.parameters(), lr=1e-4)
-# 训练模型
+# Training the diffusion model
 train_diffusion_model(model, dataloader, optimizer, epochs=2, timesteps=1000, device=device)
 
 y = lncRNA_loc_labels_o
-# 统计每个标签组合的频率
+# Count the frequency of each label combination
 label_counts = Counter([tuple(row) for row in y])
-print("原始标签分布:", label_counts)
-# 找到最频繁的标签组合的数量
+print("Original label distribution:", label_counts)
+# Find the number of the most frequent label combinations
 max_count = max(label_counts.values())
-# 对每个标签组合进行重采样
+# Resample for each label combination
 y_balanced = []
 for label, count in label_counts.items():
-    # 找到当前标签组合的所有索引
+    # Find all indices for the current label combination
     indices = [i for i, row in enumerate(y) if tuple(row) == label]
-    # 如果当前标签组合的数量少于最大数量，则过采样
+    # If the number of current label combinations is less than the maximum number, then perform oversampling
     if count < max_count:
         resampled_indices = resample(indices, replace=True, n_samples=max_count, random_state=42)
-    # 如果当前标签组合的数量多于最大数量，则欠采样
+    # If the number of current label combinations exceeds the maximum number, then perform undersampling
     elif count > max_count:
         resampled_indices = resample(indices, replace=False, n_samples=max_count, random_state=42)
-    # 如果数量正好，则保持不变
+    # If the number of current label combinations is equal to the maximum number, then remain unchanged
     else:
         resampled_indices = indices
-    # 将重采样后的标签添加到结果中
+    # Add the resampled labels to the total labels
     y_balanced.extend(y[resampled_indices])
-# 转换为 numpy 数组
 y_balanced = np.array(y_balanced)
-# 统计均衡后的标签分布
+# Count the balanced label distribution
 balanced_label_counts = Counter([tuple(row) for row in y_balanced])
-print("均衡后的标签分布:", balanced_label_counts)
+print("The balanced label distribution:", balanced_label_counts)
 labels = torch.from_numpy(y_balanced)
 augmented_datas = []
 label_num = 0
@@ -103,11 +102,11 @@ for label in labels:
     augmented_data = generate_augmented_data(model, num_samples=1, labels=label, device=device)
     augmented_datas.append(np.squeeze(augmented_data))
 augmented_datas = np.array(augmented_datas)
-# 将生成样本和标签加入原始数据
+# Add the generated samples and labels to the original data
 lncRNA_loc_features = np.concatenate([lncRNA_loc_features_o, augmented_datas], axis=0)
 lncRNA_loc_labels = np.concatenate([lncRNA_loc_labels_o, y_balanced], axis=0)
 
-# 任务一的独立测试集（ho）
+# Loading the lncRNA sequence features for the independent test set in the primary task (ho)
 print(f"lncRNA 82")
 R1_ho = []
 for c in range(NUM2):
@@ -121,7 +120,7 @@ for c in range(NUM2):
     R1_ho.append(imgT)
 lncRNA_loc_features_ho = np.array(R1_ho)
 
-# 任务二数据读取
+# Loading the lncRNA sequence features of the auxiliary task
 print("lncRNA 3046")
 R1_I = []
 for c in range(NUM3):
@@ -135,6 +134,7 @@ for c in range(NUM3):
     R1_I.append(imgT)
 lncRNA_features = np.array(R1_I)
 
+# Loading the protein sequence features for the auxiliary task
 print("Protein 136")
 P = []
 for c in range(NUM4):
@@ -148,6 +148,7 @@ for c in range(NUM4):
     P.append(imgT)
 protein_features = np.array(P)
 
+# Constructing the lncRNA-protein pairs labels for the auxiliary task
 labels = np.concatenate([np.ones(8112), np.zeros(8112)])
 df_pos = pd.read_csv('dataset_preparation/dataset_Loc_II/positive_NPInter.csv')
 df_neg = pd.read_csv('negative_NPInter.csv')
@@ -166,7 +167,7 @@ indice_rna = np.array([np.where(name_rna == rna)[0][0] for rna in name_pairs[:, 
 indice_protein = np.array([np.where(name_protein == protein)[0][0] for protein in name_pairs[:, 1]])
 pairs = np.column_stack((indice_rna, indice_protein))
 
-# 任务一评估指标存储（训练集验证相关）
+# Storage of evaluation metrics for the primary tasks (related to training and validation sets)
 MiP = []
 MiR = []
 MiF = []
@@ -177,7 +178,7 @@ AP = []
 AvgF1 = []
 Pat1 = []
 
-# 任务一评估指标存储（独立测试集 ho 相关）
+# Storage of evaluation metrics for the primary tasks (related to the independent test set)
 MiP_ho = []
 MiR_ho = []
 MiF_ho = []
@@ -188,7 +189,7 @@ AP_ho = []
 AvgF1_ho = []
 Pat1_ho = []
 
-# 任务二评估指标存储
+# Storage of evaluation metrics for the auxiliary tasks
 AUC_task2 = []
 AUPR_task2 = []
 ACC_task2 = []
@@ -196,47 +197,47 @@ PRE_task2 = []
 REC_task2 = []
 F1_task2 = []
 
-# 任务一最优结果
+# Optimal results of the primary tasks
 best_task1_maauc_ho = -np.inf
 best_task1_metrics = None
 
-# 任务二最优结果
+# Optimal results of the auxiliary tasks
 best_task2_auc = -np.inf
 best_task2_metrics = None
 
-# 定义模型
+# Defining the multi-task model
 model = MultiTaskModel()
 optimizer = optim.Adam(model.parameters(), lr=0.0001)
-# 任务一损失函数
+# Loss function of the primary task
 criterion1 = nn.BCEWithLogitsLoss()
-# 任务二损失函数
+# Loss function of the auxiliary task
 criterion2 = nn.BCELoss()
-# 联合损失权重
+# Joint loss weight
 lambda1 = 0.5
 lambda2 = 0.5
 
-# 任务一的五折交叉验证
+# Five-fold cross-validation of the primary task
 skf_task1 = KFold(n_splits=5, shuffle=True, random_state=SEED)
-# 任务二的五折交叉验证
+# Five-fold cross-validation of the auxiliary task
 skf_task2 = KFold(n_splits=5, shuffle=True, random_state=SEED)
 
-# 同步进行五折交叉验证
+# Perform five-fold cross-validation simultaneously
 for fold, ((train_idx_task1, val_idx_task1), (train_idx_task2, val_idx_task2)) in enumerate(
         zip(skf_task1.split(lncRNA_loc_features, lncRNA_loc_labels), skf_task2.split(pairs, labels)), 1):
     print(f"\nTask 1 Fold: {fold}, Task 2 Fold: {fold}")
-
+    # Construct dataloader for the training set of the current fold in the primary task
     train_data_task1 = TensorDataset(
         torch.tensor(lncRNA_loc_features[train_idx_task1], dtype=torch.float32),
         torch.tensor(lncRNA_loc_labels[train_idx_task1], dtype=torch.float32)
     )
+    # Construct dataloader for the validation set of the current fold in the primary task
     val_data_task1 = TensorDataset(
         torch.tensor(lncRNA_loc_features[val_idx_task1], dtype=torch.float32),
         torch.tensor(lncRNA_loc_labels[val_idx_task1], dtype=torch.float32)
     )
     train_loader_task1 = DataLoader(train_data_task1, batch_size=32, shuffle=True)
     val_loader_task1 = DataLoader(val_data_task1, batch_size=32, shuffle=True)
-
-    # 构建任务一独立测试集（ho）的数据加载器
+    # Construct dataloader for the independent test set (ho) in the primary task
     ho_data = TensorDataset(
         torch.tensor(lncRNA_loc_features_ho, dtype=torch.float32),
         torch.tensor(lncRNA_loc_labels_ho, dtype=torch.float32)
@@ -245,12 +246,13 @@ for fold, ((train_idx_task1, val_idx_task1), (train_idx_task2, val_idx_task2)) i
 
     train_pairs_fold, val_pairs_fold = pairs[train_idx_task2], pairs[val_idx_task2]
     train_labels_fold, val_labels_fold = labels[train_idx_task2], labels[val_idx_task2]
-
+    # Construct dataloader for the training set of the current fold in the auxiliary task
     train_data_task2 = TensorDataset(
         torch.tensor(lncRNA_features[train_pairs_fold[:, 0]], dtype=torch.float32),
         torch.tensor(protein_features[train_pairs_fold[:, 1]], dtype=torch.float32),
         torch.tensor(train_labels_fold, dtype=torch.float32)
     )
+    # Construct dataloader for the validation set of the current fold in the auxiliary task
     val_data_task2 = TensorDataset(
         torch.tensor(lncRNA_features[val_pairs_fold[:, 0]], dtype=torch.float32),
         torch.tensor(protein_features[val_pairs_fold[:, 1]], dtype=torch.float32),
@@ -278,22 +280,22 @@ for fold, ((train_idx_task1, val_idx_task1), (train_idx_task2, val_idx_task2)) i
                 break
 
             optimizer.zero_grad()
-            # 任务一输出
+            # Output of the primary task
             prob1, _ = model(x1_task1)
-            # 任务二输出
+            # Output of the auxiliary task
             prob2 = model(x1_task2, x2_task2)
 
-            # 任务一损失
+            # Loss of the primary task
             loss1 = criterion1(prob1, y1_task1)
-            # 任务二损失
+            # Loss of the auxiliary task
             loss2 = criterion2(prob2.squeeze(), y2_task2)
 
-            # 联合损失
+            # Joint loss
             combined_loss = lambda1 * loss1 + lambda2 * loss2
             combined_loss.backward()
             optimizer.step()
 
-        # 任务一验证（使用验证集）
+        # Validation of the primary tasks (using validation set)
         model.eval()
         y_true_task1, y_prob_task1 = [], []
         for x1_task1, y1_task1 in val_loader_task1:
@@ -308,7 +310,7 @@ for fold, ((train_idx_task1, val_idx_task1), (train_idx_task2, val_idx_task2)) i
             f"MiAUC={miauc:.3f}, MaAUC={maauc:.3f}, HL={hl:.3f}, "
             f"AP={ap:.3f}, AvgF1={avgF1:.3f}, P@1={pat1:.3f}")
 
-        # 任务一独立测试集（ho）评估
+        # Independent testing of the primary tasks (using an independent test set)
         model.eval()
         y_true_ho_task1, y_prob_ho_task1 = [], []
         for x1_ho_task1, y1_ho_task1 in ho_loader:
@@ -324,7 +326,7 @@ for fold, ((train_idx_task1, val_idx_task1), (train_idx_task2, val_idx_task2)) i
             f"MiAUC={miauc_ho:.3f}, MaAUC={maauc_ho:.3f}, HL={hl_ho:.3f}, "
             f"AP={ap_ho:.3f}, AvgF1={avgF1_ho:.3f}, P@1={pat1_ho:.3f}")
 
-        # 任务二验证
+        # Validation of the auxiliary tasks
         model.eval()
         y_true_task2, y_prob_task2 = [], []
         for x1_task2, x2_task2, y2_task2 in val_loader_task2:
@@ -350,18 +352,18 @@ for fold, ((train_idx_task1, val_idx_task1), (train_idx_task2, val_idx_task2)) i
         print(f"Task 2 Val: AUC={auc_task2_value:.3f}, AUPR={aupr_task2:.3f}, ACC={acc_task2:.3f}, "
               f"PRE={pre_task2:.3f}, REC={rec_task2:.3f}, F1={f1_task2:.3f}")
 
-        # 判断任务一是否为最优结果
+        # Determine whether the current epoch is optimal in the primary task
         if maauc_ho > best_task1_maauc_ho:
             best_task1_maauc_ho = maauc_ho
             best_task1_metrics = (mip, mir, mif, miauc, maauc, hl, ap, avgF1, pat1, mip_ho, mir_ho, mif_ho, miauc_ho,
                                   maauc_ho, hl_ho, ap_ho, avgF1_ho, pat1_ho)
 
-        # 判断任务二是否为最优结果
+        # Determine whether the current epoch is optimal in the auxiliary task
         if auc_task2_value > best_task2_auc:
             best_task2_auc = auc_task2_value
             best_task2_metrics = (auc_task2_value, aupr_task2, acc_task2, pre_task2, rec_task2, f1_task2)
 
-    # 存储任务一最优结果
+    # Store the optimal results in the primary task
     if best_task1_metrics:
         mip, mir, mif, miauc, maauc, hl, ap, avgF1, pat1, mip_ho, mir_ho, mif_ho, miauc_ho, maauc_ho, hl_ho, ap_ho, avgF1_ho, pat1_ho = best_task1_metrics
         MiP.append(mip)
@@ -383,7 +385,7 @@ for fold, ((train_idx_task1, val_idx_task1), (train_idx_task2, val_idx_task2)) i
         AvgF1_ho.append(avgF1_ho)
         Pat1_ho.append(pat1_ho)
 
-    # 存储任务二最优结果
+    # Store the optimal results in the auxiliary task
     if best_task2_metrics:
         auc_task2_value, aupr_task2, acc_task2, pre_task2, rec_task2, f1_task2 = best_task2_metrics
         AUC_task2.append(auc_task2_value)
@@ -393,7 +395,7 @@ for fold, ((train_idx_task1, val_idx_task1), (train_idx_task2, val_idx_task2)) i
         REC_task2.append(rec_task2)
         F1_task2.append(f1_task2)
 
-# 计算任务一指标均值（验证集相关）
+# Calculate the mean of each evaluation metric in the primary task (related to the validation set)
 MiP_mean = np.mean(MiP)
 MiR_mean = np.mean(MiR)
 MiF_mean = np.mean(MiF)
@@ -404,7 +406,7 @@ AP_mean = np.mean(AP)
 AvgF1_mean = np.mean(AvgF1)
 Pat1_mean = np.mean(Pat1)
 
-# 计算任务一指标均值（独立测试集 ho 相关）
+# Calculate the mean of each evaluation metric in the primary task (related to the independent test set)
 MiP_mean_ho = np.mean(MiP_ho)
 MiR_mean_ho = np.mean(MiR_ho)
 MiF_mean_ho = np.mean(MiF_ho)
@@ -423,7 +425,7 @@ print(f"Mean Ho: MiP={MiP_mean_ho:.3f}, MiR={MiR_mean_ho:.3f}, MiF={MiF_mean_ho:
       f"MiAUC={MiAUC_mean_ho:.3f}, MaAUC={MaAUC_mean_ho:.3f}, HL={HL_mean_ho:.3f}, "
       f"AP={AP_mean_ho:.3f}, AvgF1={AvgF1_mean_ho:.3f}, P@1={Pat1_mean_ho:.3f}")
 
-# 计算任务二指标均值
+# Calculate the mean of each evaluation metric in the auxiliary task
 AUC_task2_mean = np.mean(AUC_task2)
 AUPR_task2_mean = np.mean(AUPR_task2)
 ACC_task2_mean = np.mean(ACC_task2)
@@ -436,4 +438,4 @@ print(f"\nMean Task 2: AUC={AUC_task2_mean:.3f}, AUPR={AUPR_task2_mean:.3f}, ACC
 
 end = time.time()
 haoshi = end - start
-print(f"运行时间: {haoshi} 秒")
+print(f"Running time: {haoshi} s")
