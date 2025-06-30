@@ -92,6 +92,6 @@ To run the MTLocInt model in Python (Pycharm 2021), follow these steps:
 * **metrics.py** is used to calculate evaluation metrics such as MiP, MiR, MiF, MiAUC, MaAUC, HL, AP, AvgF1 and P@1.
 
 ## 6 Interpret the output
-After running the model, the results of the following evaluation metrics are saved in the results folder:
+After running the model, the results of the following evaluation metrics will be outputted:
 * **Primary task** (lncRNA subcellular localization prediction): MiP, MiR, MiF, MiAUC, MaAUC, HL, AP, AvgF1, Pat1;
 * **Auxiliary task** (lncRNA-protein interaction recognition): AUC, AUPR, ACC, PRE, REC, F1.
