@@ -57,17 +57,27 @@ There are multiple datasets involved in the process:
   * image_channels = 3
   * image_size = 256
   * timesteps = 1000
-  * num_labels = 4
-* **optimizer (Adam) parameter**
+  * num_labels = 4 or 3
+  * kernel_size = 3
+  * padding = 1
+  * epochs = 5 or 2
+  * num_samples = 1
+* **Optimizer (Adam) parameter**
   * lr = 1e-4
+* **Multi-task shared layer parameters**
+  * kernel_size = 3
+  * stride = 1 or 2
+  * padding = 1
 * **Primary task parameters**
   * ddr1 = 256
   * NUM1 = 729 or 219
   * NUM2 = 82 or 65
+  * lambda1 = 0.5
 * **Auxiliary task parameters**
   * ddr2 = 256
   * NUM3 = 3046
   * NUM4 = 136
+  * lambda2 = 0.5
 
 ## 4 Generate CGR images
 Run the **.m** files in Matlab (2021b) to generate CGR images in batches:
