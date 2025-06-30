@@ -14,7 +14,6 @@ for ipp = 1:length(pp)
         x = mapminmax(xo, 0, 1);
         y = mapminmax(yo, 0, 1);
         z = mapminmax(zo, 0, 1);
-        % 比标准序列长的
         if lenrat >= 1 && lenrat < 4
             xu = x;
             yu = y;
@@ -77,47 +76,41 @@ for ipp = 1:length(pp)
             zu = z;
         end
         
-        figxy = figure; % 新建一个figure，并将图像句柄保存到fig
+        figxy = figure;
         plot(xu, yu, 'k.')
-        pbaspect([1 1 1])   % 将x，y，z绘图方向的绘图框长度比例改为1:1:1
-        % 完全去除间隔, 可能会去除掉边界的一些信息, 请检查后使用
+        pbaspect([1 1 1])
         set(gca, 'LooseInset', get(gca, 'TightInset'))
-        % 宽度方向空白区域0， 高度方向空白区域0
         set(gca, 'looseInset', [0 0 0 0]);
         set(gcf, 'color', 'w')
         axis off
-        frame = getframe(figxy); % 获取frame
-        img = frame2im(frame); % 将frame变换成imwrite函数可以识别的格式
-        eval(['imwrite(img, "CGRxy_3D_RNA_82_AG_T\CGRxy_3D_82_', num2str(ind), '.png");']); % 保存到工作目录下，名字为"a.png"
+        frame = getframe(figxy);
+        img = frame2im(frame);
+        eval(['imwrite(img, "CGRxy_3D_RNA_82_AG_T\CGRxy_3D_82_', num2str(ind), '.png");']);
         close all
 
-        figxz = figure; % 新建一个figure，并将图像句柄保存到fig
-        plot(xu, zu, 'k.')
-        pbaspect([1 1 1])   % 将x，y，z绘图方向的绘图框长度比例改为1:1:1
-        % 完全去除间隔, 可能会去除掉边界的一些信息, 请检查后使用
-        set(gca, 'LooseInset', get(gca, 'TightInset'))
-        % 宽度方向空白区域0， 高度方向空白区域0
-        set(gca, 'looseInset', [0 0 0 0]);
-        set(gcf, 'color', 'w')
-        axis off
-        frame = getframe(figxz); % 获取frame
-        img = frame2im(frame); % 将frame变换成imwrite函数可以识别的格式
-        eval(['imwrite(img, "CGRxz_3D_RNA_82_AG_T\CGRxz_3D_82_', num2str(ind), '.png");']); % 保存到工作目录下，名字为"a.png"
-        close all
-    
-        figyz = figure; % 新建一个figure，并将图像句柄保存到fig
-        plot(yu, zu, 'k.')
-        pbaspect([1 1 1])   % 将x，y，z绘图方向的绘图框长度比例改为1:1:1
-        % 完全去除间隔, 可能会去除掉边界的一些信息, 请检查后使用
-        set(gca, 'LooseInset', get(gca, 'TightInset'))
-        % 宽度方向空白区域0， 高度方向空白区域0
-        set(gca, 'looseInset', [0 0 0 0]);
-        set(gcf, 'color', 'w')
-        axis off
-        frame = getframe(figyz); % 获取frame
-        img = frame2im(frame); % 将frame变换成imwrite函数可以识别的格式
-        eval(['imwrite(img, "CGRyz_3D_RNA_82_AG_T\CGRyz_3D_82_', num2str(ind), '.png");']); % 保存到工作目录下，名字为"a.png"
-        close all
+%         figxz = figure;
+%         plot(xu, zu, 'k.')
+%         pbaspect([1 1 1])
+%         set(gca, 'LooseInset', get(gca, 'TightInset'))
+%         set(gca, 'looseInset', [0 0 0 0]);
+%         set(gcf, 'color', 'w')
+%         axis off
+%         frame = getframe(figxz);
+%         img = frame2im(frame);
+%         eval(['imwrite(img, "CGRxz_3D_RNA_82_AG_T\CGRxz_3D_82_', num2str(ind), '.png");']);
+%         close all
+%     
+%         figyz = figure;
+%         plot(yu, zu, 'k.')
+%         pbaspect([1 1 1])
+%         set(gca, 'LooseInset', get(gca, 'TightInset'))
+%         set(gca, 'looseInset', [0 0 0 0]);
+%         set(gcf, 'color', 'w')
+%         axis off
+%         frame = getframe(figyz);
+%         img = frame2im(frame);
+%         eval(['imwrite(img, "CGRyz_3D_RNA_82_AG_T\CGRyz_3D_82_', num2str(ind), '.png");']);
+%         close all
     end
 end
 toc
